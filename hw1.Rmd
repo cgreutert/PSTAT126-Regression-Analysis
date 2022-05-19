@@ -1,0 +1,120 @@
+---
+title: "Homework Assignment 1"
+author: "Carly Greutert (8408916)"
+date: "`r format(Sys.Date(), '%B %d, %Y')`"
+output:
+  github_document:
+    df_print: paged
+  pdf_document: default
+---
+
+```{r setup, echo=FALSE}
+library(knitr)
+# set global chunk options: images will be 7x5 inches
+knitr::opts_chunk$set(fig.width=7, fig.height=5)
+options(digits = 4)
+
+
+## indents are for indenting r code as formatted text
+## They may need to be adjusted depending on your OS
+# if your output looks odd, increase or decrease indent
+indent1 = '    '
+indent2 = '        '
+indent3 = '            '
+```
+
+
+1. 
+```{r}
+cov.data <- data.frame(row.names = c("San Bernardino County",
+                                     "Riverside County",
+                                     "Orange County",
+                                     "San Diego County",
+                                     "Santa Clara County",
+                                     "Kern County",
+                                     "Sacramento County",
+                                     "Fresno County",
+                                     "Alameda County"))
+cov.data$population <- c(2149000, 2411000, 3168000, 3316000, 1927000, 887000, 1525000, 985000, 1657000)
+cov.data$deaths <- c(6056, 5589, 5897, 4476, 1964, 1918, 2552, 2379, 1546)
+```
+1a) In this problem, a California county's population is the predictor variable and the deaths is the response variable.                                                                            
+1b)
+```{r}
+xavg <- mean(cov.data$population)
+yavg <- mean(cov.data$deaths)
+num <- (2149000-xavg)*(6056-yavg)+(2411000-xavg)*(5589-yavg)+(3168000-xavg)*(5897-yavg)+(3316000-xavg)*(4476-yavg)+(1927000-xavg)*(1964-yavg)+(887000-xavg)*(1918-yavg)+(1525000-xavg)*(2552-yavg)+(985000-xavg)*(2379-yavg)+(1657000-xavg)*(1546-yavg)
+denom <-(2149000-xavg)^2+(2411000-xavg)^2+(3168000-xavg)^2+(3316000-xavg)^2+(1927000-xavg)^2+(887000-xavg)^2+(1525000-xavg)^2+(985000-xavg)^2+(1657000-xavg)^2
+beta1hat <- num/denom
+beta0hat <- yavg-(beta1hat*xavg)
+```
+$$\hat{\beta_1} = \frac{\sum_{i=1}^{9}(x_i-\frac{1}{9}\sum_{i=1}^{9}x_i)(y_i-\frac{1}{9}\sum_{i=1}^{9}y_i)}{\sum_{i=1}^{9}(x_i-\frac{1}{9}\sum_{i=1}^{9}x_i)^2}=0.0016$$
+$$\hat{\beta_0} = \frac{1}{9}\sum_{i=1}^{9}y_i-\frac{1}{9}\hat{\beta_1}\sum_{i=1}^{9}x_i=391.3846$$
+
+1c) $\hat{\beta_0}$ tells us the intercept, and in this problem represents a baseline number of deaths for each county (~391). $\hat{\beta_1}$ tells us the proportionality constant for the increase of the number of the deaths as the population increases (~0.0016).                           
+1d) $\hat{y}=\hat{\beta_0}+\hat{\beta_1}x=391.3846+0.0016x$                                      
+1e)$$\hat{y}=\hat{\beta_0}+\hat{\beta_1}x=391.3846+0.0016*(1000000)=1991$$                         The predicted number of deaths from COVID-19 of a county with 1,000,000 people is 1991.                                                                                                               
+2.```
+require(datasets)                                                                               
+ trees                                                                                            
+```                                                                                                
+2a) There are 31 rows and 3 columns in the dataset. The variable names are Girth, Height, and Volume.                                                    
+2b)
+```{r}
+pairs(log(trees))
+```
+2c)
+```{r}
+cor(log(trees))
+```
+2d)There are not any missing values.
+2e)
+```{r}
+treemod <- lm(formula=log(Volume)~log(Girth)+log(Height),data=trees)
+summary(treemod)
+```
+2f)
+```{r}
+model.matrix(treemod)
+xtreemod<-model.matrix(treemod)
+vol <- log(trees$Volume)
+ytreemod<-vol
+betahat<-solve(t(xtreemod)%*%xtreemod)%*%t(xtreemod)%*%ytreemod
+betahat
+```
+The least squares coefficients match what is listed in the summary report above.                 
+2g)
+Predicted Response
+$\hat{y}=X\hat{\beta}$
+```{r}
+yhat <- xtreemod%*%betahat
+yhat
+```
+Residuals $y-\hat{y}$
+```{r}
+resid <- ytreemod-yhat
+resid
+```
+Estimate of $\hat{\sigma^2}=0.006624$
+```{r}
+var <- (t(resid)%*%resid)/28
+var
+```
+
+3) We can start the process of minimization by taking the derivative of the sum of squared residuals with respect to $\beta_0$ and $\beta_1$.
+$SSR=\sum_{i=1}^{n}(y_i-\beta_0-\beta_1 x_i)^2$                                      
+$\frac{\partial SSR}{\partial \beta_0}=-2\sum_{i=1}^{n}(y_i-\beta_0-\beta_1x_i)$                
+$\frac{\partial SSR}{\partial \beta_1}=-2\sum_{i=1}^{n}x_i(y_i-\beta_0-\beta_1x_i)$               
+Setting these equations and rearranging to get $y_i$ on one side and solving for $\beta_0$ we get the following:    
+$\beta_0 n + \beta_1 \sum_{i=1}^n x_i = \sum_{i=1}^n y_i$                                  
+$\beta_0 n =\sum_{i=1}^n y_i -\beta_1 \sum_{i=1}^n x_i$                                           
+$\hat{\beta_0} = \frac{\sum_{i=1}^n y_i -\beta_1 \sum_{i=1}^n x_i}{n}=\overline{y}-\beta_1 \overline{x}$                                                                                     
+Now, solving for $\beta_1$ and substituting in our $\beta_0$ equation:                          
+$0=-2\sum_{i=1}^{n}x_i(y_i-\overline{y}-\beta_1 \overline{x}-\beta_1x_i)$                         
+$0=\sum_{i=1}^{n}x_i(y_i-\overline{y}-\beta_1(x_i-\overline{x}))$                                 
+$0=\sum_{i=1}^{n}x_i(y_i-\overline{y})-\beta_1\sum_{i=1}^{n}x_i(x_i-\overline{x})$               
+$\beta_1\sum_{i=1}^{n}x_i(x_i-\overline{x})=\sum_{i=1}^{n}x_i(y_i-\overline{y})$                 
+$\hat{\beta_1}=\frac{\sum_{i=1}^{n}x_i(y_i-\overline{y})}{\sum_{i=1}^{n}x_i(x_i-\overline{x})}$   
+$\hat{\beta_1}=\frac{\sum_{i=1}^{n}(x_i-\overline{x})(y_i-\overline{y})}{\sum_{i=1}^{n}(x_i-\overline{x})^2}$                                                                                     
+Note these are the results we wanted and that the last equality was substituted by using formulas:
+$\sum (x_i-\overline{x})^2 = \sum x_i^2-n\overline{x}^2$ and $\sum (x_i-\overline{x})(y_i-\overline{y})=\sum x_iy_i-n\overline{xy}$ given in the textbook.

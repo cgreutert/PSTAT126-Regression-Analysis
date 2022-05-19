@@ -1,0 +1,98 @@
+---
+title: "Homework Assignment 4"
+author: "Carly Greutert (8408916)"
+date: "11 March 2022"
+output: github_document
+---
+
+
+```{r setup, echo=FALSE}
+library(knitr)
+# set global chunk options: images will be 7x5 inches
+knitr::opts_chunk$set(fig.width=7, fig.height=5)
+options(digits = 4)
+
+
+## indents are for indenting r code as formatted text
+## They may need to be adjusted depending on your OS
+# if your output looks odd, increase or decrease indent
+indent1 = '    '
+indent2 = '        '
+indent3 = '            '
+```
+1. 
+```{r}
+library(ISLR)
+head(Auto)
+```
+1a)
+```{r}
+str(Auto)
+```
+The qualitative predictor are origin and name. The quantitative predictors are mpg, cylinders, displacement, horsepower, weight, acceleration, and year.                                     
+1b)
+```{r}
+automod <- lm(mpg ~ cylinders+displacement+horsepower+weight+acceleration+year+factor(origin)-name, data=Auto)
+summary(automod)
+```
+We can reject the null hypothesis for displacement, weight, year and origin. Note that, holding other variables fixed, cars from outside the U.S. affect the mpg more. We cannot reject the null for cylinders, horsepower, and acceleration (i.e. they have no linear relation to mpg).        
+1c) The coefficient estimate for origin 2 should be interpreted as the average difference in mpg between European and American cars. The coefficient estimate for origin 3 should be interpreted as the average difference in mpg between Japanese and American cars.                           
+1d) 
+```{r}
+summary(automod)$coef[1,1]+(3*summary(automod)$coef[2,1])+(100*summary(automod)$coef[3,1])+(85*summary(automod)$coef[4,1])+(3000*summary(automod)$coef[5,1])+(20*summary(automod)$coef[6,1])+(80*summary(automod)$coef[7,1])+(1*summary(automod)$coef[9,1])
+```
+The predicted mpg of a Japanese car with three cylinders, displacement 100, horsepower
+of 85, weight of 3000, acceleration of 20, built in the year 1980 is 27.89 mpg.                 
+1e) On average, the difference between a Japanese and European car's mpg is 0.2232.
+```{r}
+summary(automod)$coef[9,1]-summary(automod)$coef[8,1]
+```
+1f)
+```{r}
+automod1 <- lm(mpg~factor(origin)*horsepower, data=Auto)
+summary(automod1)
+```
+Our fitted model is now $\hat{mpg}=34.4765+10.9972*I(origin=2)+14.3397*I(origin=3)-0.1213*horsepower-0.1005*I(origin=2)*horsepower-0.1087*I(origin=3)*horsepower$.
+
+1g) Given the model above, on average, with a one-unit increase in horsepower, the mpg of a Japanese car changes by -0.1213-0.1087=-0.23.
+
+1h)
+```{r}
+autodeg1 <- lm(mpg~weight, data=Auto)
+summary(autodeg1)
+autodeg2 <- lm(mpg~weight+I(weight^2), data=Auto)
+summary(autodeg2)
+autodeg3 <- lm(mpg~weight+I(weight^2)+I(weight^3), data=Auto)
+summary(autodeg3)
+```
+Using polynomial regression, we see that the proper degree should be 2 since weight is no longer significant when we are degree 3. 
+
+1i) 
+```{r}
+library(leaps)
+autoback <- regsubsets(mpg~.-name, data = Auto, method = "backward")
+resultback <- summary(autoback)
+resultback$adjr2
+plot(resultback$adjr2, xlab = "Number of Variables", ylab = "Adjusted RSq", type = "l")
+summary(autoback)
+```
+The best model based on the adjusted $R^2$ criterion is when $R^2=0.8184$ and has 6 predictor variable. These predictors are cylinders, displacement, horsepower, weight, year, and origin.
+
+
+2a)                                                                                           
+Let $p=\frac{e^z}{1+e^z}$ be the logistic function. Solving for z, we observe:               
+$p=1-\frac{1}{1+e^z}$                                                                             
+$\frac{1}{1+e^z}=1-p$                                                                             
+$1+e^z=\frac{1}{1-p}$                                                                              
+$1+e^z=\frac{1-p}{1-p}+\frac{p}{1-p}$                                                              
+$e^z=\frac{p}{1-p}$                                                                                
+$z=ln(\frac{p}{1-p})$                                                                              
+Thus, the logit function is the inverse of the logistic function.                               
+2b) Assume $z=\beta_0+\beta_1x_1$ and $p=logistic(z)=\frac{e^z}{1+e^z}$. Then,              
+$p=\frac{e^{\beta_0+\beta_1x_1}}{1+e^{\beta_0+\beta_1x_1}}$                                    
+So if we increase $x_1$ by 2, the log odds ratio would increase, so the odds of the outcome also increase.                                                                                      
+Now, assume $\beta_1$ is negative, then:                                                        
+$p=\lim_{x_1 \longrightarrow \infty} \frac{e^{\beta_0-\beta_1x_1}}{1+e^{\beta_0-\beta_1x_1}}=\frac{0}{1+0}=0$                       
+and                                                                                             
+$p=\lim_{x_1 \longrightarrow -\infty}\frac{e^{\beta_0-\beta_1x_1}}{1+e^{\beta_0-\beta_1x_1}}=\lim_{x_1 \longrightarrow -\infty}\frac{1}{\frac{1}{e^{\beta_0-\beta_1x_1}}+1}=\frac{1}{1}=1$                            
+Therefore when $x_1$ approaches infinity and negative infinity, p equals 0 and 1 respectively. 

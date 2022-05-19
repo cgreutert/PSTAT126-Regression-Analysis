@@ -1,0 +1,136 @@
+---
+title: "Homework Assignment 3"
+author: "Carly Greutert (8408916)"
+date: "28 February 2022"
+output: github_document
+---
+
+
+```{r setup, echo=FALSE}
+library(knitr)
+# set global chunk options: images will be 7x5 inches
+knitr::opts_chunk$set(fig.width=7, fig.height=5)
+options(digits = 4)
+
+
+## indents are for indenting r code as formatted text
+## They may need to be adjusted depending on your OS
+# if your output looks odd, increase or decrease indent
+indent1 = '    '
+indent2 = '        '
+indent3 = '            '
+```
+1a)
+```{r}
+fat <- read.csv(file = "C:/Users/carly/Downloads/fat.csv")
+brozekmod <- lm(formula= brozek ~ age+weight+height+neck+chest+abdom+hip, data=fat)
+summary(brozekmod)
+head(brozekmod$fitted.values)
+head(brozekmod$residuals)
+```
+1b)
+```{r}
+plot(fitted(brozekmod),residuals(brozekmod), xlab = "Fitted", ylab = "Residuals")
+```                                                                                             
+
+The diagnostic I used is a plot of residuals against fitted values. We observe constant 
+symmetrical variation, so we conclude the equal variance assumption holds.                      
+
+1c)
+```{r}
+qqnorm(residuals(brozekmod), ylab="Residuals")
+qqline(residuals(brozekmod))
+```
+
+The diagnostic I used was a QQ-plot. The normal assumption is held in this case since the residual
+points follows closely along the residual line.                                                 
+1d)
+```{r}
+shapiro.test(residuals(brozekmod))
+```
+
+The p-value (0.5) is not low enough to reject the null hypothesis that the random errors follow a 
+normal distribution. Thus, the assumption is formally held (i.e we do not reject the null 
+hypothesis) using the Shapiro-Wilk normality test.                                              
+1e)
+```{r}
+n <- nrow(fat)
+plot(tail(residuals(brozekmod), n - 1)~head(residuals(brozekmod), n-1), xlab="i-th residual", ylab="(i+1)-th residual")
+abline(h=0,v=0)
+```
+
+The model appears to have serial correlation. This tells us that the random errors     
+independent.                                                                                    
+1f)
+```{r}
+h <- hatvalues(brozekmod)
+head(h)
+sum(h)
+p<-7
+p+1
+```
+
+Thus, the values match.                                                                         
+1g) 
+```{r}
+dat <- data.frame(index=seq(length(h)), leverage=h)
+plot(leverage ~ index, col='white', data=dat, pch = NULL)
+text(leverage ~ index, labels = index, data=dat, cex=0.9, font=2)
+abline(h=(p+1)/n, col='blue')
+abline(h=3 *(p+1)/n, col = "red", lty =2)
+avglev <- (p+1)/n
+```
+
+There are three high leverage points. I used the criterion if their leverage was 2*3 times greater
+than the average ($\frac{p+1}{n}=.03175$) then it should be considered a high leverage point.     
+1h)
+```{r}
+r <- rstandard(brozekmod)
+r
+mean(r)
+sd(r)
+```
+
+Without drawing a plot, I see that -3.025 is an outlier based on it being further than three 
+standard deviations away from the mean.                                                           
+1i) 
+```{r}
+d <- cooks.distance(brozekmod)
+dat2 <- data.frame(index=seq(length(d)), cooks=d)
+plot(cooks ~ index, col = 'white', data=dat2, pch=NULL)
+text(cooks ~ index, labels = index, data = dat2, cex=0.9, font=2)
+abline(h=.02, col='red', lty=2)
+```
+The observations 39,42,250,207 all have Cook's distances greater than .02, making them influential
+observations.                                                                                   
+1j) 
+```{r}
+fat_new <- fat[fat$brozek!=0,]
+brozekmod1 <- lm(brozek ~ ., data=fat_new)
+library(MASS)
+boxcox(brozekmod1)
+```
+
+Because 1 is in the 95% confidence interval, it is reasonable to assume a Box-Cox transformation 
+is not necessary. We needed to remove the response variables equal to 0 because Box Cox 
+transformations are designed for strictly positive response because of lambda is equal to zero 
+log(y) is inconclusive. 
+
+2. a) $H=X(X^TX)^{-1}X^T$ so, 
+$HX=X(X^TX)^{-1}X^TX$
+$=X$                                                                                              
+b)$HH=X(X^TX)^{-1}X^TX(X^TX)^{-1}X^T=X(X^TX)^{-1}X^T=H$                                          
+$H(I-H)=HI-HH=H-H=0$                                                                             
+$(I-H)(I-H)=I^2-2IH+H^2=I-2H+H=I-H$                                                               
+3. Because the covariance matrix of $\epsilon$ is a diagonal matrix of the variances of $1, .., 
+n$, we know that $\epsilon_i$ is normally distributed and identically and independently 
+distributed. Suppose we have the multiple linear regression mean function $E(Y|X)=\beta^TX$)and 
+assume $Var(Y|X)=Var(\epsilon)=\sigma^2W^{-1}$ where W is a diagonal matrix of                    
+$w_i=\frac{1}{\sigma_i^2}$. Then, we want to minimize                                            $SSR=(Y-X\beta)^TW(Y-X\beta)$                                                                   
+$SSR=(Y^TW-\beta^TX^TW)(Y-X\beta)$
+$SSR=Y^TWY-Y^TWX\beta-\beta^TX^TWY+\beta^TX^TWX\beta$
+$\frac{\partial SSR}{\partial \beta}=2(-X^TWY+X^TWX\beta)$
+Setting this equal to zero, we observe                                                          
+$-X^TWY+X^TWX\beta=0$                                                                             
+$X^TWX\beta=X^TWY$
+Thus, $\hat{\beta}=(X^TWX)^{-1}X^TWY$ is the weighted least estimator. 

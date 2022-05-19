@@ -1,0 +1,82 @@
+---
+title: "Homework Assignment 2"
+author: "Carly Greutert (8408916)"
+date: "`r format(Sys.Date(), '%B %d, %Y')`"
+output: github_document
+---
+
+
+```{r setup, echo=FALSE}
+library(knitr)
+# set global chunk options: images will be 7x5 inches
+knitr::opts_chunk$set(fig.width=7, fig.height=5)
+options(digits = 4)
+
+
+## indents are for indenting r code as formatted text
+## They may need to be adjusted depending on your OS
+# if your output looks odd, increase or decrease indent
+indent1 = '    '
+indent2 = '        '
+indent3 = '            '
+```
+1a)
+```{r}
+fat <- read.csv(file = "C:/Users/carly/Downloads/fat.csv")
+brozekmod <- lm(formula= brozek ~ age+weight+height+neck+chest+abdom+hip, data=fat)
+summary(brozekmod)
+```
+1b) The predictor variable that is significant under the threshold 0.01 is abdom (Abdomen 
+circumference).                                                                                  
+1c)The proportion of variation that is explained by predictors is R^2 (0.7271) in this case.      
+1d)The null hypothesis of the global F-test is $H_0: \beta_1=\beta_2=....=\beta_7=0$.
+```{r}
+brozekmod_m <- lm(formula=brozek~1, data=fat)
+anova(brozekmod_m, brozekmod)
+```
+The p-value for the global F-test is 2.2e-16 (p<0.001), so the 7 predictor variables covers a 
+significant amount of variation.                                                                  
+1e) Let $H_0: \beta_{age}=0$.
+```{r}
+tage <- summary(brozekmod)$coef[2,1]/summary(brozekmod)$coef[2,2]
+pt(-tage, 244, lower.tail=FALSE)*2
+```
+This is identical to the p-value in the original model.                                           
+1f) The corresponding null test for this statistical test is $H_0:\beta_{weight}=\beta_{height}=0$.
+```{r}
+brozekmod_mwvh <- lm(formula=brozek~age+neck+chest+abdom+hip, data=fat)
+anova(brozekmod_mwvh, brozekmod)
+```
+With this model, we see the p-value from the resulting F-test is 0.0093, so we reject the null 
+hypothesis at the 0.01 significance level. Thus, weight or height do have an effect on body fat   
+percentage.                                                                                       
+1g)
+```{r}
+babdom <- summary(brozekmod)$coef[7,1]
+seabdom <- summary(brozekmod)$coef[7,2]
+abdomq <- qt(0.995,244)
+babdom-(abdomq*seabdom)
+babdom+(abdomq*seabdom)
+```
+Thus, a 99% confidence interval for $\beta_{abdom}$ is [0.7033, 1.112]. This indicates that we 
+should reject the null hypothesis because $0 \notin [0.7033, 1.112]$.                             
+1h)
+```{r}
+summary(brozekmod)$coef[1,1]+(40*summary(brozekmod)$coef[2,1])+(170*summary(brozekmod)$coef[3,1])+(70*summary(brozekmod)$coef[4,1])+(38*summary(brozekmod)$coef[5,1])+(100*summary(brozekmod)$coef[6,1])+(91*summary(brozekmod)$coef[7,1])+(99*summary(brozekmod)$coef[8,1])
+```
+The predicted brozek for a person with those predictor values is 18.24%.                          
+1i)
+```{r}
+x_0 <- data.frame(age=40,weight=170,height=70,neck=38,chest=100,abdom=91,hip=99)
+predict(brozekmod,newdata=x_0,interval="prediction", level=0.95)
+```
+Thus a 95% confidence interval for this person is [10.11,26.36].
+
+2)Let $y=X\beta+\epsilon$ where $\epsilon ~ N(0,\sigma^2I)$.First, note that $\hat{\beta}$ is an   
+unbiased estimator. Then,                                  
+$Cov(\hat{\beta})$                                                                                
+$=Cov[(X^TX)^{-1}X^TY|X]$                                                                         
+$=(X^TX)^{-1}X^T[Cov(Y|X)]X(X^TX)^{-1}$                                                           
+$=(X^TX)^{-1}X^T[\sigma^2I]X(X^TX)^{-1}$                                                          
+$=\sigma^2(X^TX)^{-1}X^TX(X^TX)^{-1}$                                                             
+$=\sigma^2(X^TX)^{-1}$
